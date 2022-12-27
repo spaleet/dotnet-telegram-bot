@@ -1,10 +1,16 @@
 using BotWorker;
+using BotWorker.Extensions;
+using BotWorker.Settings;
 
-IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices(services =>
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices((context, services) =>
     {
+        services.Configure<BotConfiguration>(context.Configuration.GetSection("BotConfiguration"));
+
+        services.ConfigureTelegramClient();
+
         services.AddHostedService<Worker>();
     })
     .Build();
 
-host.Run();
+await host.RunAsync();
