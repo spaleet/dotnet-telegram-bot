@@ -3,12 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotWorker", "BotWorker\BotWorker.csproj", "{E3448582-92E2-40D4-92C3-F1B23E675F17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E3448582-92E2-40D4-92C3-F1B23E675F17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3448582-92E2-40D4-92C3-F1B23E675F17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3448582-92E2-40D4-92C3-F1B23E675F17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3448582-92E2-40D4-92C3-F1B23E675F17}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0861C7FC-B7AF-45D3-9346-81A333F15C33}
 	EndGlobalSection
 EndGlobal
