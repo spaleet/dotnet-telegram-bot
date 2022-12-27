@@ -1,5 +1,6 @@
 using BotWorker;
 using BotWorker.Extensions;
+using BotWorker.Services;
 using BotWorker.Settings;
 
 var host = Host.CreateDefaultBuilder(args)
@@ -8,6 +9,8 @@ var host = Host.CreateDefaultBuilder(args)
         services.Configure<BotConfiguration>(context.Configuration.GetSection("BotConfiguration"));
 
         services.ConfigureTelegramClient();
+        services.AddScoped<UpdateHandler>();
+        services.AddScoped<IReceiverService, ReceiverService>();
 
         services.AddHostedService<Worker>();
     })

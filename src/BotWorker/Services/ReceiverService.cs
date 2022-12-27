@@ -17,7 +17,7 @@ public class ReceiverService : IReceiverService
 
     internal ReceiverService(
     ITelegramBotClient botClient,
-        TUpdateHandler updateHandler,
+        UpdateHandler updateHandler,
         ILogger<ReceiverService> logger)
     {
         _botClient = botClient;
