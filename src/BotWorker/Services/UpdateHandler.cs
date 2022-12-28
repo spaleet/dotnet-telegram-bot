@@ -37,17 +37,20 @@ public class UpdateHandler : IUpdateHandler
         {
             case UpdateType.Message:
             case UpdateType.EditedMessage:
-                var message = update.Message;
-                await OnMessageReceived(message, cancellationToken);
+                await OnMessageReceived(update.Message, cancellationToken);
+                break;
+
+            case UpdateType.CallbackQuery:
+                await OnCallbackQueryReceived(update.CallbackQuery, cancellationToken);
                 break;
 
             default:
-                await OnUnknownUpdate(update, cancellationToken);
+                await OnUnknownUpdate(update);
                 break;
         }
     }
 
-    private async Task OnMessageReceived(Message? message, CancellationToken ct)
+    private async Task OnMessageReceived(Message message, CancellationToken ct)
     {
         _logger.LogInformation("Receive message type: {MessageType}", message.Type);
 
@@ -65,26 +68,64 @@ public class UpdateHandler : IUpdateHandler
         };
 
         Message sentMessage = await action;
-        _logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
+
+        _logger.LogInformation("The message was sent with id: {msgId}", sentMessage.MessageId);
     }
 
-    private Task OnUnknownUpdate(Update update, CancellationToken cancellationToken)
+    private Task OnUnknownUpdate(Update update)
     {
         _logger.LogInformation("Unknown update type: {type}", update.Type);
         return Task.CompletedTask;
+    }
+
+    // Inline Keyboard callback data
+    private async Task OnCallbackQueryReceived(CallbackQuery callbackQuery, CancellationToken ct)
+    {
+        _logger.LogInformation("Received inline keyboard callback from: {queryId} with data: {data}", callbackQuery.Id, callbackQuery.Data);
+
+        switch (callbackQuery.Data)
+        {
+            case "/help":
+
+                await Help(callbackQuery.Message, ct);
+                break;
+
+            default:
+                break;
+        }
     }
 
     #region OnMessage handlers
 
     private async Task<Message> Start(Message message, CancellationToken ct)
     {
-        string? username = message.Chat.Username;
-        string commands = $"Welcome {username + " "}! \n These are all the available commands : \n" +
+        await _botClient.SendChatActionAsync(
+                chatId: message.Chat.Id,
+                chatAction: ChatAction.Typing,
+                cancellationToken: ct);
+
+        string commands = $"Welcome to @spaleet_bot 😀 ! \n\n These are all the available commands : \n" +
                              "/help - see available commands";
 
-        return await _botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                     text: commands,
-                                                     replyMarkup: new ReplyKeyboardRemove(),
+        InlineKeyboardMarkup inlineKeyboard = new(
+                new[]
+                {
+                    // first row
+                    new []
+                    {
+                        InlineKeyboardButton.WithCallbackData("Help ℹ", "/help"),
+                        InlineKeyboardButton.WithCallbackData("Help ℹ", "/help")
+                    },
+                    // second row
+                    new []
+                    {
+                        InlineKeyboardButton.WithCallbackData("Help ℹ", "/help")
+                    },
+                });
+
+        return await _botClient.SendTextMessageAsync(message.Chat.Id,
+                                                     commands,
+                                                     replyMarkup: inlineKeyboard,
                                                      cancellationToken: ct);
     }
 
@@ -93,8 +134,8 @@ public class UpdateHandler : IUpdateHandler
         string commands = "These are all the available commands : \n" +
                              "/help - see available commands";
 
-        return await _botClient.SendTextMessageAsync(chatId: message.Chat.Id,
-                                                     text: commands,
+        return await _botClient.SendTextMessageAsync(message.Chat.Id,
+                                                     commands,
                                                      replyMarkup: new ReplyKeyboardRemove(),
                                                      cancellationToken: ct);
     }
