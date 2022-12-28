@@ -1,4 +1,4 @@
-﻿namespace BotWorker.Settings;
+﻿namespace BotWorker.Models;
 
 public class BotConfiguration
 {

@@ -62,6 +62,7 @@ public class UpdateHandler : IUpdateHandler
         {
             // welcome & display commands
             "/start" => Start(message, ct),
+            "/exchange" => SelectFirstExchange(message, ct),
 
             // Use a command /help
             "/help" or _ => Help(message, ct)
@@ -83,16 +84,13 @@ public class UpdateHandler : IUpdateHandler
     {
         _logger.LogInformation("Received inline keyboard callback from: {queryId} with data: {data}", callbackQuery.Id, callbackQuery.Data);
 
-        switch (callbackQuery.Data)
-        {
-            case "/help":
+        if (callbackQuery.Data == "help")
+            await Help(callbackQuery.Message, ct);
 
-                await Help(callbackQuery.Message, ct);
-                break;
+        if (callbackQuery.Data == "start-exchange")
+            await SelectFirstExchange(callbackQuery.Message, ct);
 
-            default:
-                break;
-        }
+
     }
 
     #region OnMessage handlers
@@ -113,13 +111,8 @@ public class UpdateHandler : IUpdateHandler
                     // first row
                     new []
                     {
-                        InlineKeyboardButton.WithCallbackData("Help ℹ", "/help"),
-                        InlineKeyboardButton.WithCallbackData("Help ℹ", "/help")
-                    },
-                    // second row
-                    new []
-                    {
-                        InlineKeyboardButton.WithCallbackData("Help ℹ", "/help")
+                        InlineKeyboardButton.WithCallbackData("Currency Exchange 💵", "start-exchange"),
+                        InlineKeyboardButton.WithCallbackData("Help ℹ", "help")
                     },
                 });
 
@@ -137,6 +130,27 @@ public class UpdateHandler : IUpdateHandler
         return await _botClient.SendTextMessageAsync(message.Chat.Id,
                                                      commands,
                                                      replyMarkup: new ReplyKeyboardRemove(),
+                                                     cancellationToken: ct);
+    }
+
+    private async Task<Message> SelectFirstExchange(Message message, CancellationToken ct)
+    {
+        string commands = "Select your first currency : \n";
+
+        InlineKeyboardMarkup inlineKeyboard = new(
+                new[]
+                {
+                    // first row
+                    new []
+                    {
+                        InlineKeyboardButton.WithCallbackData("USD 🇺🇸", "finish-exchange USD"),
+                        InlineKeyboardButton.WithCallbackData("CAD 🇨🇦", "finish-exchange CAD")
+                    },
+                });
+
+        return await _botClient.SendTextMessageAsync(message.Chat.Id,
+                                                     commands,
+                                                     replyMarkup: inlineKeyboard,
                                                      cancellationToken: ct);
     }
 
