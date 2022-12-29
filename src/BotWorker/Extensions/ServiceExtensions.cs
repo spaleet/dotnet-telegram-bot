@@ -1,4 +1,4 @@
-﻿using BotWorker.Settings;
+﻿using BotWorker.Models;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 

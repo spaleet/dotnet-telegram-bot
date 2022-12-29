@@ -10,12 +10,14 @@ namespace BotWorker.Services;
 public class UpdateHandler : IUpdateHandler
 {
     private readonly ITelegramBotClient _botClient;
+    private readonly ICurrencyService _currencyClient;
     private readonly ILogger<UpdateHandler> _logger;
 
-    public UpdateHandler(ITelegramBotClient botClient, ILogger<UpdateHandler> logger)
+    public UpdateHandler(ITelegramBotClient botClient, ILogger<UpdateHandler> logger, ICurrencyService currencyClient)
     {
         _botClient = botClient;
         _logger = logger;
+        _currencyClient = currencyClient;
     }
 
     public async Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
@@ -135,21 +137,27 @@ public class UpdateHandler : IUpdateHandler
 
     private async Task<Message> SelectFirstExchange(Message message, CancellationToken ct)
     {
-        string commands = "Select your first currency : \n";
+        string text = "Select your first currency : \n";
 
-        InlineKeyboardMarkup inlineKeyboard = new(
-                new[]
-                {
-                    // first row
-                    new []
-                    {
-                        InlineKeyboardButton.WithCallbackData("USD 🇺🇸", "finish-exchange USD"),
-                        InlineKeyboardButton.WithCallbackData("CAD 🇨🇦", "finish-exchange CAD")
-                    },
-                });
+        var currencies = await _currencyClient.GetAllCurrencies();
+
+        int rows = currencies.Count() / 2;
+
+        List<IEnumerable<InlineKeyboardButton>> keyboardValues = new();
+
+        for (int i = 1; i < rows; i++)
+        {
+            keyboardValues.Add(new[]
+            {
+                InlineKeyboardButton.WithCallbackData(currencies[i].ToString(), $"finish-exchange {currencies[i].Name}"),
+                InlineKeyboardButton.WithCallbackData(currencies[i].ToString(), $"finish-exchange {currencies[i].Name}"),
+            });
+        }
+
+        var inlineKeyboard = new InlineKeyboardMarkup(keyboardValues);
 
         return await _botClient.SendTextMessageAsync(message.Chat.Id,
-                                                     commands,
+                                                     text,
                                                      replyMarkup: inlineKeyboard,
                                                      cancellationToken: ct);
     }
