@@ -1,6 +1,5 @@
 # dotnet-telegram-bot
 
-## About
 This is a Currency Exchange Telegram Bot built with **.net 7**
 
 ### Requirements
@@ -31,3 +30,7 @@ Start the worker service:
 cd /BotWorker
 dotnet run
 ```
+
+### Screenshots
+
+<img src="/docs/sample.png" alt="bot" height="500" />
