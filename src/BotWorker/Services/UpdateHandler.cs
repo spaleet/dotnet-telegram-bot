@@ -95,6 +95,9 @@ public class UpdateHandler : IUpdateHandler
 
         if (callbackQuery.Data.Split(" ")[0] == "select-second-currency")
             await SelectSecondCurrency(callbackQuery.Message, callbackQuery.Data.Split(" ")[1], ct);
+
+        if (callbackQuery.Data.Split(" ")[0] == "finish-exchange")
+            await GetExchangeRate(callbackQuery.Message, callbackQuery.Data.Split(" ")[1], callbackQuery.Data.Split(" ")[2], ct);
     }
 
     #region OnMessage handlers
@@ -171,7 +174,7 @@ public class UpdateHandler : IUpdateHandler
             {
                 keyboardValues.Add(new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"select-second-currency {currencies[firstCurrency].Id}")
+                    InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"select-second-currency {currencies[firstCurrency].Name}")
                 });
 
                 break;
@@ -180,8 +183,8 @@ public class UpdateHandler : IUpdateHandler
             // Add two items to row
             keyboardValues.Add(new[]
             {
-                InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"select-second-currency {currencies[firstCurrency].Id}"),
-                InlineKeyboardButton.WithCallbackData(currencies[secondCurrency].ToString(), $"select-second-currency {currencies[secondCurrency].Id}"),
+                InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"select-second-currency {currencies[firstCurrency].Name}"),
+                InlineKeyboardButton.WithCallbackData(currencies[secondCurrency].ToString(), $"select-second-currency {currencies[secondCurrency].Name}"),
             });
         }
 
@@ -193,14 +196,14 @@ public class UpdateHandler : IUpdateHandler
                                                      cancellationToken: ct);
     }
 
-    private async Task<Message> SelectSecondCurrency(Message message, string id, CancellationToken ct)
+    private async Task<Message> SelectSecondCurrency(Message message, string firstId, CancellationToken ct)
     {
         string text = "Select your second currency : \n";
 
         var currencies = await _currencyClient.GetAllCurrencies();
 
-        var firstSelected = currencies.Where(x => x.Id == id).FirstOrDefault();
-        int firstSelectedIndex = Array.FindIndex(currencies, x => x.Id == id);
+        var firstSelected = currencies.Where(x => x.Name == firstId).FirstOrDefault();
+        int firstSelectedIndex = Array.FindIndex(currencies, x => x.Name == firstId);
 
         // Remove selected currency from array
         // And re-order array
@@ -235,7 +238,7 @@ public class UpdateHandler : IUpdateHandler
             {
                 keyboardValues.Add(new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"finish-exchange {id} {currencies[firstCurrency].Id}")
+                    InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"finish-exchange {firstId} {currencies[firstCurrency].Name}")
                 });
 
                 break;
@@ -244,8 +247,8 @@ public class UpdateHandler : IUpdateHandler
             // Add two items to row
             keyboardValues.Add(new[]
             {
-                InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"finish-exchange {id} {currencies[firstCurrency].Id}"),
-                InlineKeyboardButton.WithCallbackData(currencies[secondCurrency].ToString(), $"finish-exchange {id} {currencies[secondCurrency].Id}"),
+                InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"finish-exchange {firstId} {currencies[firstCurrency].Name}"),
+                InlineKeyboardButton.WithCallbackData(currencies[secondCurrency].ToString(), $"finish-exchange {firstId} {currencies[secondCurrency].Name}"),
             });
         }
 
@@ -254,6 +257,25 @@ public class UpdateHandler : IUpdateHandler
         return await _botClient.SendTextMessageAsync(message.Chat.Id,
                                                      text,
                                                      replyMarkup: inlineKeyboard,
+                                                     cancellationToken: ct);
+    }
+
+    private async Task<Message> GetExchangeRate(Message message, string firstId, string secondId, CancellationToken ct)
+    {
+        var currencies = await _currencyClient.GetAllCurrencies();
+
+        var firstSelected = currencies.Where(x => x.Name == firstId).FirstOrDefault();
+        var secondSelected = currencies.Where(x => x.Name == secondId).FirstOrDefault();
+
+        decimal exchangeRate = await _currencyClient.GetExchangeRate(firstSelected.Name, secondSelected.Name);
+
+
+        string text = $"Exchange Rate from {firstSelected} to {secondSelected} is *{exchangeRate}*";
+
+        return await _botClient.SendTextMessageAsync(message.Chat.Id,
+                                                     text,
+                                                     replyMarkup: new ReplyKeyboardRemove(),
+                                                     parseMode: ParseMode.Markdown,
                                                      cancellationToken: ct);
     }
 
