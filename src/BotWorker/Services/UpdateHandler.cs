@@ -1,4 +1,5 @@
-﻿using Telegram.Bot;
+﻿using BotWorker.Models;
+using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -64,7 +65,7 @@ public class UpdateHandler : IUpdateHandler
         {
             // welcome & display commands
             "/start" => Start(message, ct),
-            "/exchange" => SelectFirstExchange(message, ct),
+            "/exchange" => SelectFirstCurrency(message, ct),
 
             // Use a command /help
             "/help" or _ => Help(message, ct)
@@ -89,8 +90,11 @@ public class UpdateHandler : IUpdateHandler
         if (callbackQuery.Data == "help")
             await Help(callbackQuery.Message, ct);
 
-        if (callbackQuery.Data == "start-exchange")
-            await SelectFirstExchange(callbackQuery.Message, ct);
+        if (callbackQuery.Data == "select-first-currency")
+            await SelectFirstCurrency(callbackQuery.Message, ct);
+
+        if (callbackQuery.Data.Split(" ")[0] == "select-second-currency")
+            await SelectSecondCurrency(callbackQuery.Message, callbackQuery.Data.Split(" ")[1], ct);
     }
 
     #region OnMessage handlers
@@ -103,7 +107,7 @@ public class UpdateHandler : IUpdateHandler
                 cancellationToken: ct);
 
         string commands = $"Welcome to @spaleet_bot 😀 ! \n\n These are all the available commands : \n" +
-                             "/exchange - currency Exchange \n" +
+                             "/exchange - currency exchange \n" +
                              "/help - see available commands";
 
         InlineKeyboardMarkup inlineKeyboard = new(
@@ -111,7 +115,7 @@ public class UpdateHandler : IUpdateHandler
                 {
                     new []
                     {
-                        InlineKeyboardButton.WithCallbackData("Currency Exchange 💵", "start-exchange"),
+                        InlineKeyboardButton.WithCallbackData("Currency Exchange 💵", "select-first-currency"),
                         InlineKeyboardButton.WithCallbackData("Help ℹ", "help")
                     },
                 });
@@ -125,7 +129,7 @@ public class UpdateHandler : IUpdateHandler
     private async Task<Message> Help(Message message, CancellationToken ct)
     {
         string commands = "These are all the available commands : \n" +
-                             "/exchange - currency Exchange \n" +
+                             "/exchange - currency exchange \n" +
                              "/help - see available commands";
 
         return await _botClient.SendTextMessageAsync(message.Chat.Id,
@@ -134,7 +138,7 @@ public class UpdateHandler : IUpdateHandler
                                                      cancellationToken: ct);
     }
 
-    private async Task<Message> SelectFirstExchange(Message message, CancellationToken ct)
+    private async Task<Message> SelectFirstCurrency(Message message, CancellationToken ct)
     {
         string text = "Select your first currency : \n";
 
@@ -167,7 +171,7 @@ public class UpdateHandler : IUpdateHandler
             {
                 keyboardValues.Add(new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"finish-exchange {currencies[firstCurrency].Name}")
+                    InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"select-second-currency {currencies[firstCurrency].Id}")
                 });
 
                 break;
@@ -176,8 +180,72 @@ public class UpdateHandler : IUpdateHandler
             // Add two items to row
             keyboardValues.Add(new[]
             {
-                InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"finish-exchange {currencies[firstCurrency].Name}"),
-                InlineKeyboardButton.WithCallbackData(currencies[secondCurrency].ToString(), $"finish-exchange {currencies[secondCurrency].Name}"),
+                InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"select-second-currency {currencies[firstCurrency].Id}"),
+                InlineKeyboardButton.WithCallbackData(currencies[secondCurrency].ToString(), $"select-second-currency {currencies[secondCurrency].Id}"),
+            });
+        }
+
+        var inlineKeyboard = new InlineKeyboardMarkup(keyboardValues);
+
+        return await _botClient.SendTextMessageAsync(message.Chat.Id,
+                                                     text,
+                                                     replyMarkup: inlineKeyboard,
+                                                     cancellationToken: ct);
+    }
+
+    private async Task<Message> SelectSecondCurrency(Message message, string id, CancellationToken ct)
+    {
+        string text = "Select your second currency : \n";
+
+        var currencies = await _currencyClient.GetAllCurrencies();
+
+        var firstSelected = currencies.Where(x => x.Id == id).FirstOrDefault();
+        int firstSelectedIndex = Array.FindIndex(currencies, x => x.Id == id);
+
+        // Remove selected currency from array
+        // And re-order array
+        var currenciesReordered = new List<CurrencyDto>(currencies);
+        currenciesReordered.RemoveAt(firstSelectedIndex);
+        currencies = currenciesReordered.ToArray();
+
+        int currenciesRange = currencies.Count() - 1;
+        bool listCountIsOdd = currencies.Count() % 2 != 0;
+
+        // Rows containing two currencies
+        int rows = currencies.Count() / 2;
+
+        // Round up rows
+        if (listCountIsOdd)
+            rows += 1;
+
+        List<IEnumerable<InlineKeyboardButton>> keyboardValues = new();
+
+        // Fill inline kyboard rows
+        for (int i = 0; i < rows; i++)
+        {
+            int firstCurrency = i + (i + 1) - 1;
+            int secondCurrency = i + (i + 2) - 1;
+
+            // Check for index out of range
+            if (firstCurrency > currenciesRange)
+                break;
+
+            // Check if there's only one item for row
+            if (secondCurrency > currenciesRange)
+            {
+                keyboardValues.Add(new[]
+                {
+                    InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"finish-exchange {id} {currencies[firstCurrency].Id}")
+                });
+
+                break;
+            }
+
+            // Add two items to row
+            keyboardValues.Add(new[]
+            {
+                InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"finish-exchange {id} {currencies[firstCurrency].Id}"),
+                InlineKeyboardButton.WithCallbackData(currencies[secondCurrency].ToString(), $"finish-exchange {id} {currencies[secondCurrency].Id}"),
             });
         }
 

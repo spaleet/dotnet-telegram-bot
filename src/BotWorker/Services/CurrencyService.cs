@@ -8,17 +8,17 @@ public interface ICurrencyService
 
 public class CurrencyService : ICurrencyService
 {
+    private readonly CurrencyDto[] Currencies = new CurrencyDto[]
+    {
+        new("USD", "🇺🇸"), new("EUR", "🇪🇺"),
+        new("JPY", "🇯🇵"), new("GBP", "🇬🇧"),
+        new("HKD", "🇭🇰"), new("INR", "🇮🇳"),
+        new("CAD", "🇨🇦"), new("AED", "🇦🇪"),
+        new("CNY", "🇨🇳"),  new("AUD", "🇦🇺")
+    };
+
     public Task<CurrencyDto[]> GetAllCurrencies()
     {
-        var currencies = new CurrencyDto[]
-        {
-            new("USD", "🇺🇸"), new("EUR", "🇪🇺"),
-            new("JPY", "🇯🇵"), new("GBP", "🇬🇧"),
-            new("HKD", "🇭🇰"), new("INR", "🇮🇳"),
-            new("CAD", "🇨🇦"), new("AED", "🇦🇪"),
-            new("CNY", "🇨🇳"),  new("AUD", "🇦🇺")
-        };
-
-        return Task.FromResult(currencies);
+        return Task.FromResult(Currencies);
     }
 }
