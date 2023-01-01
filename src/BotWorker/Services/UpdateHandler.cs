@@ -91,8 +91,6 @@ public class UpdateHandler : IUpdateHandler
 
         if (callbackQuery.Data == "start-exchange")
             await SelectFirstExchange(callbackQuery.Message, ct);
-
-
     }
 
     #region OnMessage handlers
@@ -105,12 +103,12 @@ public class UpdateHandler : IUpdateHandler
                 cancellationToken: ct);
 
         string commands = $"Welcome to @spaleet_bot 😀 ! \n\n These are all the available commands : \n" +
+                             "/exchange - currency Exchange \n" +
                              "/help - see available commands";
 
         InlineKeyboardMarkup inlineKeyboard = new(
                 new[]
                 {
-                    // first row
                     new []
                     {
                         InlineKeyboardButton.WithCallbackData("Currency Exchange 💵", "start-exchange"),
@@ -127,6 +125,7 @@ public class UpdateHandler : IUpdateHandler
     private async Task<Message> Help(Message message, CancellationToken ct)
     {
         string commands = "These are all the available commands : \n" +
+                             "/exchange - currency Exchange \n" +
                              "/help - see available commands";
 
         return await _botClient.SendTextMessageAsync(message.Chat.Id,
@@ -141,16 +140,44 @@ public class UpdateHandler : IUpdateHandler
 
         var currencies = await _currencyClient.GetAllCurrencies();
 
+        int currenciesRange = currencies.Count() - 1;
+        bool listCountIsOdd = currencies.Count() % 2 != 0;
+
+        // Rows containing two currencies
         int rows = currencies.Count() / 2;
+
+        // Round up rows
+        if (listCountIsOdd)
+            rows += 1;
 
         List<IEnumerable<InlineKeyboardButton>> keyboardValues = new();
 
-        for (int i = 1; i < rows; i++)
+        // Fill inline kyboard rows
+        for (int i = 0; i < rows; i++)
         {
+            int firstCurrency = i + (i + 1) - 1;
+            int secondCurrency = i + (i + 2) - 1;
+
+            // Check for index out of range
+            if (firstCurrency > currenciesRange)
+                break;
+
+            // Check if there's only one item for row
+            if (secondCurrency > currenciesRange)
+            {
+                keyboardValues.Add(new[]
+                {
+                    InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"finish-exchange {currencies[firstCurrency].Name}")
+                });
+
+                break;
+            }
+
+            // Add two items to row
             keyboardValues.Add(new[]
             {
-                InlineKeyboardButton.WithCallbackData(currencies[i].ToString(), $"finish-exchange {currencies[i].Name}"),
-                InlineKeyboardButton.WithCallbackData(currencies[i].ToString(), $"finish-exchange {currencies[i].Name}"),
+                InlineKeyboardButton.WithCallbackData(currencies[firstCurrency].ToString(), $"finish-exchange {currencies[firstCurrency].Name}"),
+                InlineKeyboardButton.WithCallbackData(currencies[secondCurrency].ToString(), $"finish-exchange {currencies[secondCurrency].Name}"),
             });
         }
 

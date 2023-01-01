@@ -12,12 +12,11 @@ public class CurrencyService : ICurrencyService
     {
         var currencies = new CurrencyDto[]
         {
-            new("USD", "🇺🇸"), new("CAD", "🇨🇦"),
-            new("USD", "🇺🇸"), new("CAD", "🇨🇦"),
-            new("USD", "🇺🇸"), new("CAD", "🇨🇦"),
-            new("USD", "🇺🇸"), new("CAD", "🇨🇦"),
-            new("USD", "🇺🇸"), new("CAD", "🇨🇦"),
-            new("USD", "🇺🇸"), new("CAD", "🇨🇦"),
+            new("USD", "🇺🇸"), new("EUR", "🇪🇺"),
+            new("JPY", "🇯🇵"), new("GBP", "🇬🇧"),
+            new("HKD", "🇭🇰"), new("INR", "🇮🇳"),
+            new("CAD", "🇨🇦"), new("AED", "🇦🇪"),
+            new("CNY", "🇨🇳"),  new("AUD", "🇦🇺")
         };
 
         return Task.FromResult(currencies);
