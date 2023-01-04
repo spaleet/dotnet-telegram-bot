@@ -31,6 +31,6 @@ cd /BotWorker
 dotnet run
 ```
 
-### Screenshots
+### Usage
 
-<img src="/docs/sample.png" alt="bot" height="500" />
+![](/docs/sample.gif)
