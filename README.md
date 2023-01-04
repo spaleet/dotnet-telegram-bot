@@ -33,4 +33,6 @@ dotnet run
 
 ### Usage
 
-![](/docs/sample.gif)
+<br />
+
+![](/docs/sample.png)
