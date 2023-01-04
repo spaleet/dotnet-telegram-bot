@@ -9,13 +9,13 @@ public static class ServiceExtensions
     public static void ConfigureTelegramClient(this IServiceCollection services)
     {
         services.AddHttpClient("telegram_bot_client")
-                .AddTypedClient<ITelegramBotClient>((httpClient, sp) =>
-                {
-                    BotConfiguration? botConfig = sp.GetService<IOptions<BotConfiguration>>().Value;
+            .AddTypedClient<ITelegramBotClient>((httpClient, sp) =>
+            {
+                BotConfiguration? botConfig = sp.GetService<IOptions<BotConfiguration>>().Value;
 
-                    TelegramBotClientOptions options = new(botConfig?.BotToken);
+                TelegramBotClientOptions options = new(botConfig?.BotToken);
 
-                    return new TelegramBotClient(options, httpClient);
-                });
+                return new TelegramBotClient(options, httpClient);
+            });
     }
 }

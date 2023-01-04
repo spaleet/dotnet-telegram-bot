@@ -16,7 +16,6 @@ public class Worker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
-        {
             try
             {
                 using var scope = _serviceProvider.CreateScope();
@@ -31,6 +30,5 @@ public class Worker : BackgroundService
                 // Cooldown if something goes wrong
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
             }
-        }
     }
 }

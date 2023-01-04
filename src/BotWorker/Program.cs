@@ -14,7 +14,8 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddHttpClient("currency_exchange_client", options =>
         {
             options.BaseAddress = new Uri("https://currency-exchange.p.rapidapi.com");
-            options.DefaultRequestHeaders.Add("X-RapidAPI-Key", context.Configuration["BotConfiguration:CurrencyExchangeApiKey"]);
+            options.DefaultRequestHeaders.Add("X-RapidAPI-Key",
+                context.Configuration["BotConfiguration:CurrencyExchangeApiKey"]);
             options.DefaultRequestHeaders.Add("X-RapidAPI-Host", "currency-exchange.p.rapidapi.com");
         });
 

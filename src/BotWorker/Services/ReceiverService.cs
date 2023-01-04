@@ -12,8 +12,8 @@ public interface IReceiverService
 public class ReceiverService : IReceiverService
 {
     private readonly ITelegramBotClient _botClient;
-    private readonly IUpdateHandler _updateHandler;
     private readonly ILogger<ReceiverService> _logger;
+    private readonly IUpdateHandler _updateHandler;
 
     public ReceiverService(
         ITelegramBotClient botClient,
@@ -27,18 +27,18 @@ public class ReceiverService : IReceiverService
 
     public async Task ReceiveAsync(CancellationToken stoppingToken)
     {
-        var receiverOptions = new ReceiverOptions()
+        var receiverOptions = new ReceiverOptions
         {
             AllowedUpdates = Array.Empty<UpdateType>(),
-            ThrowPendingUpdates = true,
+            ThrowPendingUpdates = true
         };
 
         _logger.LogInformation("Receiving successfully started");
 
         // start receiving
         await _botClient.ReceiveAsync(
-            updateHandler: _updateHandler,
-            receiverOptions: receiverOptions,
-            cancellationToken: stoppingToken);
+            _updateHandler,
+            receiverOptions,
+            stoppingToken);
     }
 }

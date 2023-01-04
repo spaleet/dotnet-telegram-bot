@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace BotWorker.Services;
+
 public interface ICurrencyService
 {
     Task<CurrencyDto[]> GetAllCurrencies();
@@ -10,16 +11,17 @@ public interface ICurrencyService
 
 public class CurrencyService : ICurrencyService
 {
-    private readonly CurrencyDto[] Currencies = new CurrencyDto[]
+    private readonly HttpClient _client;
+
+    private readonly CurrencyDto[] Currencies =
     {
         new("USD", "🇺🇸"), new("EUR", "🇪🇺"),
         new("JPY", "🇯🇵"), new("GBP", "🇬🇧"),
         new("HKD", "🇭🇰"), new("INR", "🇮🇳"),
         new("CAD", "🇨🇦"), new("AED", "🇦🇪"),
-        new("CNY", "🇨🇳"),  new("AUD", "🇦🇺")
+        new("CNY", "🇨🇳"), new("AUD", "🇦🇺")
     };
 
-    private readonly HttpClient _client;
     public CurrencyService(IHttpClientFactory factory)
     {
         _client = factory.CreateClient("currency_exchange_client");
@@ -38,7 +40,7 @@ public class CurrencyService : ICurrencyService
         if (string.IsNullOrEmpty(to))
             throw new ArgumentNullException(nameof(to));
 
-        var query = new Dictionary<string, string>()
+        var query = new Dictionary<string, string>
         {
             ["from"] = from,
             ["to"] = to,
